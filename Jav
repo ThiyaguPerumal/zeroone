@@ -1,37 +1,21 @@
 try {
-            // Set up JSch session
-            JSch jsch = new JSch();
-            Session session = jsch.getSession(username, host, port);
-            
-            // Set password and disable StrictHostKeyChecking (to avoid manual host key verification)
-            session.setPassword(password);
-            session.setConfig("StrictHostKeyChecking", "no");
-session.setConfig("kex", "diffie-hellman-group14-sha1,diffie-hellman-group-exchange-sha256");
-session.setConfig("cipher", "aes128-gcm@openssh.com,aes256-gcm@openssh.com");
-session.setConfig("mac", "hmac-sha2-512,hmac-sha2-256");
+            // Constructing the command to launch PuTTY via ProcessBuilder
+            String command = String.format("\"C:\\Program Files\\PuTTY\\putty.exe\" -ssh %s@%s -pw %s -P %d", username, host, password, port);
 
-            // Connect to the server
-            session.connect();
+            // Start the process
+            ProcessBuilder processBuilder = new ProcessBuilder(command);
+            processBuilder.redirectErrorStream(true);
+            Process process = processBuilder.start();
 
-            // Execute the command (e.g., `df -h`)
-            String command = "df -h";
-            ChannelExec channel = (ChannelExec) session.openChannel("exec");
-            channel.setCommand(command);
-            
-            // Get the input stream of the command execution
-            InputStream inputStream = channel.getInputStream();
-            channel.connect();
-
-            // Read the output of the command
-            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+            // Read the output of the PuTTY process
+            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
             String line;
             while ((line = reader.readLine()) != null) {
-                System.out.println(line);  // Print the output of `df -h`
+                System.out.println(line);  // Print the output of the command (e.g., df -h)
             }
 
-            // Wait for the command to complete
-            channel.disconnect();
-            session.disconnect();
-        } catch (JSchException | IOException e) {
+            // Wait for the process to finish
+            process.waitFor();
+        } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
