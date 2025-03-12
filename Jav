@@ -1,72 +1,30 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-package putty;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 
-import com.jcraft.jsch.ChannelExec;
-import com.jcraft.jsch.JSch;
-import com.jcraft.jsch.JSchException;
-import com.jcraft.jsch.Session;
-import java.io.*;
-import java.util.*;
-
-/**
- *
- * @author Guest01
- */
-public class Putty {
-
-    /**
-     * @param args the command line arguments
-     */
+public class SSHCommandExecution {
     public static void main(String[] args) {
-
-        String host = "10.198.199.100"; // Replace with your remote host (IP or hostname)
-        String username = "sas";    // Replace with your SSH username
-        String password = "password";    // Replace with your SSH password
-        int port = 22;                        // Replace with your SSH port (default is 22)
+        String host = "your-remote-host.com";  // SSH server hostname
+        String username = "your-username";     // SSH username
+        String password = "your-password";     // SSH password
 
         try {
-            // Set up JSch session
-            JSch jsch = new JSch();
-            Session session = jsch.getSession(username, host, port);
+            // Construct the SSH command
+            String command = String.format("sshpass -p %s ssh %s@%s df -h", password, username, host);
 
-            // Enable debug mode for JSch (logs algorithm negotiation)
-            session.setConfig("LogLevel", "DEBUG");
+            // Execute the command
+            Process process = Runtime.getRuntime().exec(command);
+            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
 
-            // Set password and disable StrictHostKeyChecking (to avoid manual host key verification)
-            session.setPassword(password);
-            session.setConfig("StrictHostKeyChecking", "no");
-session.setConfig("kex", "diffie-hellman-group14-sha1,diffie-hellman-group-exchange-sha256");
-session.setConfig("cipher", "aes128-gcm@openssh.com,aes256-gcm@openssh.com");
-session.setConfig("mac", "hmac-sha2-512,hmac-sha2-256");
-
-            // Connect to the server
-            session.connect();
-
-            // Execute the command (e.g., `df -h`)
-            String command = "df -h";
-            ChannelExec channel = (ChannelExec) session.openChannel("exec");
-            channel.setCommand(command);
-
-            // Get the input stream of the command execution
-            InputStream inputStream = channel.getInputStream();
-            channel.connect();
-
-            // Read the output of the command
-            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+            // Print the command output
             String line;
             while ((line = reader.readLine()) != null) {
-                System.out.println(line);  // Print the output of `df -h`
+                System.out.println(line);
             }
 
-            // Wait for the command to complete
-            channel.disconnect();
-            session.disconnect();
-        } catch (JSchException | IOException e) {
-            e.printStackTrace();  // Print error if the connection fails
+            // Wait for the process to finish
+            process.waitFor();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 }
