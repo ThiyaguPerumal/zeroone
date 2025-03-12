@@ -39,6 +39,9 @@ public class Putty {
             // Set password and disable StrictHostKeyChecking (to avoid manual host key verification)
             session.setPassword(password);
             session.setConfig("StrictHostKeyChecking", "no");
+session.setConfig("kex", "diffie-hellman-group14-sha1,diffie-hellman-group-exchange-sha256");
+session.setConfig("cipher", "aes128-gcm@openssh.com,aes256-gcm@openssh.com");
+session.setConfig("mac", "hmac-sha2-512,hmac-sha2-256");
 
             // Connect to the server
             session.connect();
