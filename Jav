@@ -1,0 +1,69 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package putty;
+
+import com.jcraft.jsch.ChannelExec;
+import com.jcraft.jsch.JSch;
+import com.jcraft.jsch.JSchException;
+import com.jcraft.jsch.Session;
+import java.io.*;
+import java.util.*;
+
+/**
+ *
+ * @author Guest01
+ */
+public class Putty {
+
+    /**
+     * @param args the command line arguments
+     */
+    public static void main(String[] args) {
+
+        String host = "10.198.199.100"; // Replace with your remote host (IP or hostname)
+        String username = "sas";    // Replace with your SSH username
+        String password = "password";    // Replace with your SSH password
+        int port = 22;                        // Replace with your SSH port (default is 22)
+
+        try {
+            // Set up JSch session
+            JSch jsch = new JSch();
+            Session session = jsch.getSession(username, host, port);
+
+            // Enable debug mode for JSch (logs algorithm negotiation)
+            session.setConfig("LogLevel", "DEBUG");
+
+            // Set password and disable StrictHostKeyChecking (to avoid manual host key verification)
+            session.setPassword(password);
+            session.setConfig("StrictHostKeyChecking", "no");
+
+            // Connect to the server
+            session.connect();
+
+            // Execute the command (e.g., `df -h`)
+            String command = "df -h";
+            ChannelExec channel = (ChannelExec) session.openChannel("exec");
+            channel.setCommand(command);
+
+            // Get the input stream of the command execution
+            InputStream inputStream = channel.getInputStream();
+            channel.connect();
+
+            // Read the output of the command
+            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                System.out.println(line);  // Print the output of `df -h`
+            }
+
+            // Wait for the command to complete
+            channel.disconnect();
+            session.disconnect();
+        } catch (JSchException | IOException e) {
+            e.printStackTrace();  // Print error if the connection fails
+        }
+    }
+}
