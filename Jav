@@ -1,10 +1,29 @@
-try {
-            // Constructing the command to launch PuTTY via ProcessBuilder
-            String command = String.format("\"C:\\Program Files\\PuTTY\\putty.exe\" -ssh %s@%s -pw %s -P %d", username, host, password, port);
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.IOException;
+
+public class PuTTYAutomation {
+    public static void main(String[] args) {
+        String host = "your-remote-host.com";  // Replace with your host
+        String username = "your-username";     // Replace with your SSH username
+        String password = "your-password";     // Replace with your SSH password
+        int port = 22;                         // Default SSH port is 22
+
+        try {
+            // Construct the command to launch PuTTY via ProcessBuilder and run 'df -h'
+            String puttyPath = "C:\\Program Files\\PuTTY\\putty.exe"; // Path to PuTTY
+
+            // Use PuTTY in batch mode to execute the df -h command and automatically close
+            String command = String.format(
+                "\"%s\" -ssh %s@%s -pw %s -P %d -m -C df -h", 
+                puttyPath, username, host, password, port
+            );
+
+            // Create the process
+            ProcessBuilder processBuilder = new ProcessBuilder(command.split(" "));
+            processBuilder.redirectErrorStream(true);
 
             // Start the process
-            ProcessBuilder processBuilder = new ProcessBuilder(command);
-            processBuilder.redirectErrorStream(true);
             Process process = processBuilder.start();
 
             // Read the output of the PuTTY process
@@ -16,6 +35,9 @@ try {
 
             // Wait for the process to finish
             process.waitFor();
+
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
+    }
+}
